@@ -250,10 +250,8 @@ services:
     container_name: prestech-backend
     ports:
       - "5000:8080"
-      - "5001:8081"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_URLS=http://+:8080;https://+:8081
       - ConnectionStrings__DefaultConnection=Server=sqlserver,1433;Database=PresTechDataBase;User Id=sa;Password=PresTech2024!;TrustServerCertificate=True;
     depends_on:
       - sqlserver
