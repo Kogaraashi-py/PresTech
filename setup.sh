@@ -226,7 +226,6 @@ echo -e "${GREEN}✅ Configuración del frontend creada${NC}\n"
 
 # Crear docker-compose.yml
 cat > docker-compose.yml << 'EOF'
-
 services:
   sqlserver:
     image: mcr.microsoft.com/mssql/server:2022-latest
@@ -234,6 +233,7 @@ services:
     environment:
       - ACCEPT_EULA=Y
       - MSSQL_SA_PASSWORD=PresTech2024!
+      - MSSQL_PID=Developer
     ports:
       - "1433:1433"
     volumes:
@@ -241,12 +241,6 @@ services:
       - ./backups:/var/opt/mssql/backup
     networks:
       - prestech-network
-    healthcheck:
-      test: /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "PresTech2024!" -Q "SELECT 1" || exit 1
-      interval: 10s
-      timeout: 3s
-      retries: 10
-      start_period: 10s
     restart: unless-stopped
 
   backend:
@@ -262,8 +256,7 @@ services:
       - ASPNETCORE_URLS=http://+:8080;https://+:8081
       - ConnectionStrings__DefaultConnection=Server=sqlserver,1433;Database=PresTechDataBase;User Id=sa;Password=PresTech2024!;TrustServerCertificate=True;
     depends_on:
-      sqlserver:
-        condition: service_healthy
+      - sqlserver
     networks:
       - prestech-network
     restart: unless-stopped
