@@ -1,0 +1,57 @@
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: prestech-sqlserver
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=PresTech2024!
+      - MSSQL_PID=Developer
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+      - ./backups:/var/opt/mssql/backup
+    networks:
+      - prestech-network
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ./PresTech-BackEnd
+      dockerfile: Dockerfile
+    container_name: prestech-backend
+    ports:
+      - "5000:8080"
+      - "5001:8081"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080;https://+:8081
+      - ConnectionStrings__DefaultConnection=Server=sqlserver,1433;Database=PresTechDataBase;User Id=sa;Password=PresTech2024!;TrustServerCertificate=True;
+    depends_on:
+      - sqlserver
+    networks:
+      - prestech-network
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./ProyectoPresTech
+      dockerfile: Dockerfile
+    container_name: prestech-frontend
+    ports:
+      - "3000:80"
+    environment:
+      - VITE_API_URL=http://localhost:5000
+    depends_on:
+      - backend
+    networks:
+      - prestech-network
+    restart: unless-stopped
+
+volumes:
+  sqlserver-data:
+    driver: local
+
+networks:
+  prestech-network:
+    driver: bridge
